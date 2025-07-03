@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Drive Away - User Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f8f9fa;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    form {
+      max-width: 500px;
+      margin: 0 auto 40px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    form input {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    form button {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .car-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .car-card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 20px;
+      text-align: center;
+    }
+
+    .car-card h3 {
+      margin-bottom: 10px;
+    }
+
+    .car-card p {
+      margin-bottom: 15px;
+      color: #555;
+    }
+
+    .car-card button {
+      padding: 8px 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .car-card button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Add a New Car</h2>
+  <form id="addCarForm">
+    <label>Brand:</label><br>
+    <input type="text" name="brand" required><br>
+
+    <label>Model:</label><br>
+    <input type="text" name="model" required><br>
+
+    <label>Capacity (seats):</label><br>
+    <input type="number" name="capacity" required><br>
+
+    <button type="submit">Add Car</button>
+  </form>
+
+  <h2>🚗 Available Cars to Rent</h2>
+  <div id="car-list" class="car-list"></div>
+
+  <script>
+    const apiUrl = 'http://localhost:5000/api/cars';
+
+    // Load Available Cars
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const res = await fetch(apiUrl);
+        const cars = await res.json();
+        const container = document.getElementById("car-list");
+
+        if (!cars || cars.length === 0) {
+          container.innerHTML = "<p>No cars available.</p>";
+          return;
+        }
+
+        cars.forEach(car => {
+          if (!car.isBooked) {
+            const card = document.createElement("div");
+            card.className = "car-card";
+            card.innerHTML = `
+              <h3>${car.brand} ${car.model}</h3>
+              <p>Capacity: ${car.capacity} seats</p>
+              <button onclick="bookCar('${car._id}')">Book</button>
+            `;
+            container.appendChild(card);
+          }
+        });
+      } catch (err) {
+        console.error("Failed to fetch cars:", err);
+        document.getElementById("car-list").innerText = "Error loading cars.";
+      }
+    });
+
+    // Book Car
+    async function bookCar(carId) {
+      const userEmail = localStorage.getItem("email");
+      if (!userEmail) {
+        alert("Please login first!");
+        return;
+      }
+
+      const res = await fetch(`${apiUrl}/book/${carId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userEmail })
+      });
+
+      const data = await res.json();
+      alert(data.message);
+      location.reload();
+    }
+
+    // Add Car Handler
+    document.getElementById("addCarForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+      const ownerEmail = localStorage.getItem("email");
+
+      const data = {
+        brand: formData.get("brand"),
+        model: formData.get("model"),
+        capacity: parseInt(formData.get("capacity")),
+        ownerEmail: ownerEmail
+      };
+
+      const res = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+      alert(result.message);
+      if (res.ok) location.reload(); // Refresh to show new car
+    });
+  </script>
+</body>
+</html>
