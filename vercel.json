@@ -1,0 +1,3 @@
+{
+  "rewrites": [{ "source": "/", "destination": "/index.html" ,"/owner-dashboard.html","/user-dashboard.html","/style.css"}]
+}
