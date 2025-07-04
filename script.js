@@ -1,3 +1,27 @@
+// Dummy car data
+const cars = [
+  { brand: 'Toyota', model: 'Corolla', capacity: 5 },
+  { brand: 'Honda', model: 'Civic', capacity: 4 }
+];
+
+// Function to display cars
+function displayCars() {
+  const carList = document.getElementById('car-list');
+  if (!carList) return;  // Prevent errors if element is missing
+
+  carList.innerHTML = ''; // Clear previous list
+
+  cars.forEach(car => {
+    const carItem = document.createElement('div');
+    carItem.innerHTML = `<strong>${car.brand}</strong> ${car.model} - Seats: ${car.capacity}`;
+    carItem.style.marginBottom = '10px';
+    carList.appendChild(carItem);
+  });
+}
+
+// Call function when page loads
+window.onload = displayCars;
+
 function register() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
