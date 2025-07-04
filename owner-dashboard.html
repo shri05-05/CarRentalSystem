@@ -91,7 +91,10 @@
   <button class="return-all-btn" onclick="returnAll()">Return All Booked Cars</button>
   <div id="car-list" class="car-list"></div>
 
-  <script>
+  <h2>🚗 Available Cars to Rent</h2>
+<div id="car-list"></div>
+
+<script>
     const email = localStorage.getItem('email');
     const apiUrl = `http://localhost:5000/api/cars/owner/${email}`;
 
