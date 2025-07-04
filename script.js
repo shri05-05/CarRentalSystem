@@ -125,6 +125,62 @@ function returnAll() {
   alert("All your booked cars have been marked as returned.");
   displayOwnerCars();
 }
+// Register Function
+function register() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const role = document.getElementById("role").value;
+
+  if (!email || !password) {
+    document.getElementById('msg').innerText = "Please enter both email and password.";
+    document.getElementById('msg').style.color = "red";
+    return;
+  }
+
+  // Save the user to LocalStorage
+  const user = { email, password, role };
+  localStorage.setItem('user', JSON.stringify(user));
+
+  document.getElementById('msg').innerText = "Registered successfully! Please login.";
+  document.getElementById('msg').style.color = "green";
+}
+
+
+// Login Function
+function login() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const role = document.getElementById("role").value;
+
+  const storedUser = JSON.parse(localStorage.getItem('user'));
+
+  if (!storedUser) {
+    document.getElementById('msg').innerText = "No registered user found. Please register first.";
+    document.getElementById('msg').style.color = "red";
+    return;
+  }
+
+  if (email === storedUser.email && password === storedUser.password && role === storedUser.role) {
+    document.getElementById('msg').innerText = "Login successful!";
+    document.getElementById('msg').style.color = "green";
+
+    // Save logged in user details (optional but useful)
+    localStorage.setItem('email', email);
+    localStorage.setItem('role', role);
+
+    // Redirect based on role
+    if (role === 'owner') {
+      window.location.href = 'owner-dashboard.html';
+    } else {
+      window.location.href = 'user-dashboard.html';
+    }
+
+  } else {
+    document.getElementById('msg').innerText = "Invalid credentials or role!";
+    document.getElementById('msg').style.color = "red";
+  }
+}
+
 
 // Auto-run correct display on page load
 document.addEventListener('DOMContentLoaded', function() {
