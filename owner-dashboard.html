@@ -92,82 +92,72 @@
   <div id="car-list" class="car-list"></div>
 
   <script>
-    const email = localStorage.getItem('email');
-    const apiUrl = `http://localhost:5000/api/cars/owner/${email}`;
+    const email = localStorage.getItem('email');  // Owner's email
 
-    document.addEventListener("DOMContentLoaded", async () => {
-      try {
-        const res = await fetch(apiUrl);
-        const cars = await res.json();
-        const container = document.getElementById("car-list");
+    let cars = JSON.parse(localStorage.getItem('cars')) || [];
 
-        if (!cars || cars.length === 0) {
-          container.innerHTML = "<p>You have not added any cars.</p>";
-          return;
-        }
+    function displayOwnerCars() {
+      const container = document.getElementById("car-list");
+      container.innerHTML = '';
 
-        cars.forEach(car => {
-          const card = document.createElement("div");
-          card.className = "car-card";
+      const ownerCars = cars.filter(car => car.ownerEmail === email);
 
-          const status = car.isBooked
-            ? `
-              <p class="booked">Booked by: ${car.bookedBy}</p>
-              <button onclick="returnCar('${car._id}')">Return Car</button>
-            `
-            : `<p class="not-booked">Not Booked</p>`;
-
-          card.innerHTML = `
-            <h3>${car.brand} ${car.model}</h3>
-            <p>Capacity: ${car.capacity} seats</p>
-            <p>Owner: ${car.ownerEmail}</p>
-            ${status}
-          `;
-          container.appendChild(card);
-        });
-      } catch (err) {
-        console.error("Failed to fetch cars:", err);
-        document.getElementById("car-list").innerText = "Error loading cars.";
+      if (ownerCars.length === 0) {
+        container.innerHTML = "<p>You have not added any cars.</p>";
+        return;
       }
-    });
 
-    async function returnCar(carId) {
-      const confirmReturn = confirm("Are you sure you want to mark this car as returned?");
-      if (!confirmReturn) return;
+      ownerCars.forEach((car, index) => {
+        const card = document.createElement("div");
+        card.className = "car-card";
 
-      try {
-        const res = await fetch(`http://localhost:5000/api/cars/return/${carId}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" }
-        });
+        const status = car.isBooked
+          ? `
+            <p class="booked">Booked by: ${car.bookedBy || 'Someone'}</p>
+            <button onclick="returnCar(${index})">Return Car</button>
+          `
+          : `<p class="not-booked">Not Booked</p>`;
 
-        const data = await res.json();
-        alert(data.message);
-        location.reload(); // refresh to update UI
-      } catch (err) {
-        console.error("Error returning car:", err);
-        alert("Failed to return the car.");
+        card.innerHTML = `
+          <h3>${car.brand} ${car.model}</h3>
+          <p>Capacity: ${car.capacity} seats</p>
+          <p>Owner: ${car.ownerEmail}</p>
+          ${status}
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function returnCar(indexInFilteredList) {
+      const ownerCars = cars.filter(car => car.ownerEmail === email);
+      const actualIndex = cars.indexOf(ownerCars[indexInFilteredList]);
+
+      if (actualIndex !== -1 && cars[actualIndex].isBooked) {
+        cars[actualIndex].isBooked = false;
+        cars[actualIndex].bookedBy = '';
+        localStorage.setItem('cars', JSON.stringify(cars));
+        alert("Car marked as returned.");
+        displayOwnerCars();
       }
     }
 
-    async function returnAll() {
-      const confirmAll = confirm("Are you sure you want to return all booked cars?");
+    function returnAll() {
+      const confirmAll = confirm("Are you sure you want to return all your booked cars?");
       if (!confirmAll) return;
 
-      try {
-        const res = await fetch(`http://localhost:5000/api/cars/return-all`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" }
-        });
+      cars = cars.map(car => {
+        if (car.ownerEmail === email && car.isBooked) {
+          return { ...car, isBooked: false, bookedBy: '' };
+        }
+        return car;
+      });
 
-        const data = await res.json();
-        alert(data.message);
-        location.reload();
-      } catch (err) {
-        console.error("Failed to return all cars:", err);
-        alert("Error returning all cars.");
-      }
+      localStorage.setItem('cars', JSON.stringify(cars));
+      alert("All your booked cars have been marked as returned.");
+      displayOwnerCars();
     }
+
+    document.addEventListener("DOMContentLoaded", displayOwnerCars);
   </script>
 </body>
 </html>
