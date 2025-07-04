@@ -2,127 +2,137 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Drive Away - Owner Dashboard</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Owner Dashboard - Car Rental</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
       margin: 0;
-      padding: 40px 20px;
-      background: linear-gradient(135deg, #e0f7fa, #ffffff);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      padding: 20px;
     }
 
     h2 {
-      font-size: 28px;
-      color: #2c3e50;
-      margin-bottom: 20px;
-    }
-
-    .return-all-btn {
-      padding: 12px 24px;
-      background-color: #28a745;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s ease;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      margin-bottom: 30px;
-    }
-
-    .return-all-btn:hover {
-      background-color: #218838;
-      transform: translateY(-2px);
-    }
-
-    .car-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 25px;
-      width: 100%;
-      max-width: 1100px;
-      padding: 0 10px;
-    }
-
-    .car-card {
-      background: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-      padding: 20px;
       text-align: center;
-      transition: transform 0.2s ease;
+      color: #4a4a4a;
     }
 
-    .car-card:hover {
-      transform: translateY(-5px);
+    form {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
-    .car-card h3 {
-      font-size: 22px;
-      color: #333333;
-      margin-bottom: 8px;
+    form input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
     }
 
-    .car-card p {
-      font-size: 15px;
-      color: #555555;
-      margin: 5px 0;
-    }
-
-    .booked {
-      color: #28a745;
-      font-weight: bold;
-    }
-
-    .not-booked {
-      color: #dc3545;
-      font-weight: bold;
-    }
-
-    .car-card button {
-      padding: 8px 16px;
-      background-color: #dc3545;
-      color: #fff;
+    form button {
+      width: 100%;
+      padding: 10px;
+      background-color: #28a745;
+      color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 5px;
       cursor: pointer;
-      font-size: 14px;
-      margin-top: 12px;
-      transition: background-color 0.3s ease, transform 0.2s ease;
     }
 
-    .car-card button:hover {
-      background-color: #c82333;
-      transform: scale(1.05);
+    form button:hover {
+      background-color: #218838;
     }
 
-    @media (max-width: 500px) {
-      h2 {
-        font-size: 22px;
-      }
+    #car-list {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 10px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
 
-      .return-all-btn {
-        padding: 10px 18px;
-        font-size: 14px;
-      }
+    #clear-cars {
+      display: block;
+      margin: 10px auto;
+      padding: 10px 20px;
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #clear-cars:hover {
+      background-color: #5a6268;
     }
   </style>
 </head>
 <body>
 
-  <h2>🚘 Cars You've Added</h2>
+  <h2>Add a New Car</h2>
+  <form id="car-form">
+    <input type="text" id="brand" placeholder="Brand" required />
+    <input type="text" id="model" placeholder="Model" required />
+    <input type="number" id="capacity" placeholder="Capacity" required />
+    <button type="submit">Add Car</button>
+  </form>
 
-  <button class="return-all-btn" onclick="returnAll()">Return All Booked Cars</button>
+  <h2>🚗 Cars You've Added</h2>
+  <button id="clear-cars">Return All Booked Cars</button>
 
-  <div id="car-list" class="car-list">
-    <!-- Cars will appear here -->
-  </div>
+  <div id="car-list"></div>
 
-  <script src="script.js"></script>
+  <script>
+    const form = document.getElementById('car-form');
+    const carList = document.getElementById('car-list');
+
+    let cars = JSON.parse(localStorage.getItem('cars')) || [];
+
+    function displayCars() {
+      if (cars.length === 0) {
+        carList.innerHTML = '<p>You have not added any cars.</p>';
+      } else {
+        carList.innerHTML = '';
+        cars.forEach((car, index) => {
+          const div = document.createElement('div');
+          div.style.padding = '10px';
+          div.style.borderBottom = '1px solid #ccc';
+          div.innerHTML = `<strong>${car.brand}</strong> ${car.model} - Seats: ${car.capacity}`;
+          carList.appendChild(div);
+        });
+      }
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const brand = document.getElementById('brand').value.trim();
+      const model = document.getElementById('model').value.trim();
+      const capacity = document.getElementById('capacity').value.trim();
+
+      if (brand && model && capacity) {
+        const newCar = { brand, model, capacity };
+        cars.push(newCar);
+        localStorage.setItem('cars', JSON.stringify(cars));
+        form.reset();
+        displayCars();
+      }
+    });
+
+    document.getElementById('clear-cars').addEventListener('click', function() {
+      localStorage.removeItem('cars');
+      cars = [];
+      displayCars();
+    });
+
+    window.onload = displayCars;
+  </script>
+
 </body>
 </html>
