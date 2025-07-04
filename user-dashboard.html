@@ -102,85 +102,66 @@
   <h2>🚗 Available Cars to Rent</h2>
   <div id="car-list" class="car-list"></div>
 
-  <h2>🚗 Available Cars to Rent</h2>
-<div id="car-list"></div>
+  <script>
+    // Get cars from localStorage or initialize empty array
+    let cars = JSON.parse(localStorage.getItem('cars')) || [];
 
- <script>
-    const apiUrl = 'http://localhost:5000/api/cars';
+    // Display cars
+    function displayCars() {
+      const container = document.getElementById("car-list");
+      container.innerHTML = '';
 
-    // Load Available Cars
-    document.addEventListener("DOMContentLoaded", async () => {
-      try {
-        const res = await fetch(apiUrl);
-        const cars = await res.json();
-        const container = document.getElementById("car-list");
-
-        if (!cars || cars.length === 0) {
-          container.innerHTML = "<p>No cars available.</p>";
-          return;
-        }
-
-        cars.forEach(car => {
-          if (!car.isBooked) {
-            const card = document.createElement("div");
-            card.className = "car-card";
-            card.innerHTML = `
-              <h3>${car.brand} ${car.model}</h3>
-              <p>Capacity: ${car.capacity} seats</p>
-              <button onclick="bookCar('${car._id}')">Book</button>
-            `;
-            container.appendChild(card);
-          }
-        });
-      } catch (err) {
-        console.error("Failed to fetch cars:", err);
-        document.getElementById("car-list").innerText = "Error loading cars.";
-      }
-    });
-
-    // Book Car
-    async function bookCar(carId) {
-      const userEmail = localStorage.getItem("email");
-      if (!userEmail) {
-        alert("Please login first!");
+      if (cars.length === 0) {
+        container.innerHTML = "<p>No cars available.</p>";
         return;
       }
 
-      const res = await fetch(`${apiUrl}/book/${carId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userEmail })
+      cars.forEach((car, index) => {
+        const card = document.createElement("div");
+        card.className = "car-card";
+        card.innerHTML = `
+          <h3>${car.brand} ${car.model}</h3>
+          <p>Capacity: ${car.capacity} seats</p>
+          <button onclick="bookCar(${index})">${car.isBooked ? "Booked" : "Book"}</button>
+        `;
+        container.appendChild(card);
       });
-
-      const data = await res.json();
-      alert(data.message);
-      location.reload();
     }
 
     // Add Car Handler
-    document.getElementById("addCarForm").addEventListener("submit", async function (e) {
+    document.getElementById("addCarForm").addEventListener("submit", function (e) {
       e.preventDefault();
-
       const formData = new FormData(this);
-      const ownerEmail = localStorage.getItem("email");
 
-      const data = {
+      const newCar = {
         brand: formData.get("brand"),
         model: formData.get("model"),
         capacity: parseInt(formData.get("capacity")),
-        ownerEmail: ownerEmail
+        isBooked: false
       };
 
-      const res = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-
-      const result = await res.json();
-      alert(result.message);
-      if (res.ok) location.reload(); // Refresh to show new car
+      cars.push(newCar);
+      localStorage.setItem('cars', JSON.stringify(cars));
+      displayCars();
+      this.reset();
     });
+
+    // Book Car Handler
+    function bookCar(index) {
+      if (cars[index].isBooked) {
+        alert("This car is already booked.");
+        return;
+      }
+
+      cars[index].isBooked = true;
+      localStorage.setItem('cars', JSON.stringify(cars));
+      alert("Car booked successfully!");
+      displayCars();
+    }
+
+    // Initial render
+    displayCars();
   </script>
+
 </body>
 </html>
